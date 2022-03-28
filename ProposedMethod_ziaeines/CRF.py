@@ -37,7 +37,7 @@ def word2features(sent, i):
     features = {
         'word1': int(word[0]),      # x of points
         'word2': int(word[1][1:]),  # y of points
-        'postag': int(postag)       # is_convexpoint
+##        'postag': int(postag)       # is_convexpoint
     }
     return features
 def sent2features(sent):
@@ -49,16 +49,40 @@ def sent2labels(sent):
 ## MAIN ##
 X = [sent2features(s) for s in td]
 y = [sent2labels(s) for s in td]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.9995, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=42)
+algorithm='l2sgd'
 
-crf = sklearn_crfsuite.CRF(
-    algorithm='lbfgs',
-    c1=0.1,
-    c2=0.1,
-    max_iterations=20,
-    all_possible_transitions=False,
-    verbose=1
-)
+if algorithm=='lbfgs':
+    crf = sklearn_crfsuite.CRF(
+        algorithm='lbfgs',
+        c1=0.25,
+        c2=0.3,
+        delta=0,
+        num_memories=100,
+        linesearch='StrongBacktracking', #'MoreThuente', 'Backtracking'
+        max_iterations=2000,
+        all_possible_transitions=False,
+        verbose=1
+    )
+
+elif algorithm=='l2sgd':
+    crf = sklearn_crfsuite.CRF(
+        algorithm='l2sgd',
+        c2=0.3,
+        delta=0,
+        calibration_eta=3,
+    ##    calibration_rate=1.5,
+        max_iterations=10000,
+        all_possible_transitions=False,
+        verbose=1
+    )
+
+elif algorithm=='arow':
+    crf = sklearn_crfsuite.CRF(
+        algorithm='arow',
+        max_iterations=100,
+        verbose=1
+    )
 crf.fit(X_train, y_train)
 print(eli5.format_as_text(eli5.explain_weights(crf)))
 
@@ -67,6 +91,11 @@ print(eli5.format_as_text(eli5.explain_weights(crf)))
 labels = list(crf.classes_)
 
 ypred = crf.predict(X_train)
+print(ypred[0])
+print(ypred[1])
+print(ypred[2])
+print(ypred[3])
+print(ypred[4])
 print('F1 score on the train set = {}\n'.format(metrics.flat_f1_score(y_train, ypred, average='weighted', labels=labels)))
 print('Accuracy on the train set = {}\n'.format(metrics.flat_accuracy_score(y_train, ypred)))
 
@@ -80,6 +109,11 @@ y_train, ypred, labels=sorted_labels, digits=3
 
 #obtaining metrics such as accuracy, etc. on the test set
 ypred = crf.predict(X_test)
+print(ypred[0])
+print(ypred[1])
+print(ypred[2])
+print(ypred[3])
+print(ypred[4])
 print('F1 score on the test set = {}\n'.format(metrics.flat_f1_score(y_test, ypred,
 average='weighted', labels=labels)))
 print('Accuracy on the test set = {}\n'.format(metrics.flat_accuracy_score(y_test, ypred)))
