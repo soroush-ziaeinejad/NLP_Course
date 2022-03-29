@@ -23,7 +23,7 @@ def dataReading(csvfile):
         if max2<n[:,1].max(): max2=n[:,1].max()
     print(max1,max2)
     X = np.int32(np.zeros((len(df),+1,max2+1)))
-    Y = np.int32(np.zeros((len(df))-1)
+    Y = np.int32(np.zeros((len(df))-1))
     print(X.shape,Y.shape)
     for i,d in enumerate(df):
 ##        X[

@@ -91,11 +91,6 @@ print(eli5.format_as_text(eli5.explain_weights(crf)))
 labels = list(crf.classes_)
 
 ypred = crf.predict(X_train)
-print(ypred[0])
-print(ypred[1])
-print(ypred[2])
-print(ypred[3])
-print(ypred[4])
 print('F1 score on the train set = {}\n'.format(metrics.flat_f1_score(y_train, ypred, average='weighted', labels=labels)))
 print('Accuracy on the train set = {}\n'.format(metrics.flat_accuracy_score(y_train, ypred)))
 
@@ -109,11 +104,6 @@ y_train, ypred, labels=sorted_labels, digits=3
 
 #obtaining metrics such as accuracy, etc. on the test set
 ypred = crf.predict(X_test)
-print(ypred[0])
-print(ypred[1])
-print(ypred[2])
-print(ypred[3])
-print(ypred[4])
 print('F1 score on the test set = {}\n'.format(metrics.flat_f1_score(y_test, ypred,
 average='weighted', labels=labels)))
 print('Accuracy on the test set = {}\n'.format(metrics.flat_accuracy_score(y_test, ypred)))
