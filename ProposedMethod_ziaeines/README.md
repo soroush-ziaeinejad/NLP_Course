@@ -14,4 +14,8 @@ Table below shows the weighted F1 score for each model that we used to reach the
 
 The loss and accuracy plots are provided below for SimpleRNN, GRU, and Bidirectional LSTM.
 
-![](image.png)
+![SimpleRNN]('ProposedMethod_ziaeines/imgs/SimpleRNN - Copy.png')
+
+![GRUreal2](ProposedMethod_ziaeines/imgs/GRUreal2 - Copy.png)
+
+![lstm](ProposedMethod_ziaeines/imgs/lstm - Copy.png)
