@@ -1,6 +1,6 @@
 # NLP_Course - Proposed Method
 
-This folder contains the codes for the proposed method section. There are three python files that each of them is compiled independently. The CRF.py contain the code for applying [CRF.py](https://github.com/soroush-ziaeinejad/NLP_Course/blob/main/ProposedMethod_ziaeines/CRF.py) to our dataset. [RNNLSTM.py](https://github.com/soroush-ziaeinejad/NLP_Course/blob/main/ProposedMethod_ziaeines/RNNLSTM.py) contains the main models (RNN, GRU, and Bidirectional LSTM). 
+This folder contains the codes for the proposed method section. There are three python files that each of them is compiled independently. The CRF.py contain the code for applying [CRF.py](https://github.com/soroush-ziaeinejad/NLP_Course/blob/c9cfc1c8f54a81f039c18c551975b440fc593b56/ProposedMethod_ziaeines/src/CRF.py) to our dataset. [RNNLSTM.py](https://github.com/soroush-ziaeinejad/NLP_Course/blob/c9cfc1c8f54a81f039c18c551975b440fc593b56/ProposedMethod_ziaeines/src/RNNLSTM.py) contains the main models (RNN, GRU, and Bidirectional LSTM). 
 
 
 Table below shows the weighted F1 score for each model that we used to reach the Bidirectional LSTM as the best model.
