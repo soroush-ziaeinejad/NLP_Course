@@ -20,3 +20,37 @@ The loss and accuracy plots are provided below for SimpleRNN, GRU, and Bidirecti
 ![GRUreal2](https://github.com/soroush-ziaeinejad/NLP_Course/blob/5fd9faf59be06a32c5750bf9b89c3fee9046b5bc/ProposedMethod_ziaeines/imgs/GRUreal2%20-%20Copy.png)
 
 ![lstm](https://github.com/soroush-ziaeinejad/NLP_Course/blob/5fd9faf59be06a32c5750bf9b89c3fee9046b5bc/ProposedMethod_ziaeines/imgs/lstm%20-%20Copy.png)
+
+
+requirements:
+```
+pip uninstall scikit-learn
+pip install scikit-learn==0.23.2
+pip install sklearn-crfsuite
+pip install eli5
+```
+
+
+To run each model, you should:
+
+*    **CRF**:
+
+```python CRF.py```
+
+*    **SimpleRNN**:
+
+Change the model_ variable in RNNLSTM file to **'simpleRNN'**
+
+```python RNNLSTM.py```
+
+*    **GRU**:
+
+Change the model_ variable in RNNLSTM file to **'GRU'**
+
+```python RNNLSTM.py```
+
+*    **Bidirectional LSTM**:
+
+Change the model_ variable in RNNLSTM file to **'LSTM'**
+
+```python RNNLSTM.py```
