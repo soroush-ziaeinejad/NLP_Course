@@ -7,37 +7,50 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity as cs
 import matplotlib.pyplot as plt
 import copy
+import pytrec_eval
+import json
+from gensim.models import Word2Vec
+
+
 ################ Dataset ################
+
+#### PyTrec ####
+def DictonaryGeneration(model,G):
+    M = {}
+    for k in model.keys():
+        M[k] = {}
+        for v in model[k]:
+            M[k][v] = 1
+    GG = {}
+    for k in G.keys():
+        GG[k] = {}
+        for v in G[k]:
+            GG[k][v[1]] = 1
+    return M,GG
+def DictonaryGenerationW2V(model,G):
+    M = {}
+    for k in model.keys():
+        M[k] = {}
+        for v in model[k]:
+            M[k][v[0]] = 1
+    GG = {}
+    for k in G.keys():
+        GG[k] = {}
+        for v in G[k]:
+            GG[k][v[1]] = 1
+    return M,GG
+brownDS = brown.sents(categories=['news'])
+#### Corpus ####
 def data():
-##    brownDS = brown.words(categories='news')
-    brownDS = brown.sents(categories=['news'])#, 'editorial', 'reviews', 'mystery',
-                                      #'fiction','hobbies'])
+    brownDS = brown.sents(categories=['news'])#, ,'hobbies'])
     dd =[]
     for i in brownDS:
         dd.append(" ".join(i))
     print(len(dd))
-##    Dataset1 = [w.lower() for w in brownDS]
-##    Dataset1 = np.asarray(brownDS)
-##    print("len brown:", len(Dataset1)) #100,554
-##    Dataset1 = np.unique(Dataset1)
-##    print("len brown after removing duplicates:", len(Dataset1)) #13,112
     return dd
-####    nltk.download('wordnet')
-##    wordnet.all_synsets()
-##    Dataset2 = []
-##    for i in wordnet.all_synsets():
-##        Dataset2.append(i.name().split('.')[0])
-##    Dataset2 = np.asarray(Dataset2)
-##    print("len wordnet:", len(Dataset2)) #117,659
-##    Dataset2 = np.unique(Dataset2)
-##    print("len wordnet after removing duplicates:", len(Dataset2)) #86,555
-##
-##    dataset = np.concatenate((Dataset1,Dataset2))
-##    print("len dataset:", len(dataset)) #99,667
-##    dataset = np.unique(dataset)
-##    print("len dataset after removing duplicates:", len(dataset)) #93,293, 6,374 Common words
-##    return dataset
 
+
+#### Ground Truth ####
 def notten(a):
   c = 0
   for ii,i in enumerate(a):
@@ -59,22 +72,17 @@ def transitive(topk,W1,W2,Sim,vocab):
                     for ind in indices:
                         if W2[ind] not in tw[:,1] and W2[ind]!=word and W2[ind] not in addedWords:
                             addedWords.append([Sim[ind]*(sim/max(Sim)),W2[ind]])
-                            #topk[word].append([Sim[ind]*(sim/max(Sim)),W2[ind]])
                 if word2 in W2:
                     indices = [i for i, x in enumerate(W2) if x == word2]
                     for ind in indices:
                         if W1[ind] not in tw[:,1] and W1[ind]!=word and W1[ind] not in addedWords:
                             addedWords.append([Sim[ind]*(sim/max(Sim)),W1[ind]])
-                            #topk[word].append([Sim[ind]*(sim/max(Sim)),W1[ind]])
             addCounter = 0
             addedWords = sorted(addedWords, reverse=True)
             while len(topk[word])<10 and addCounter<len(addedWords):
                 topk[word].append(addedWords[addCounter])
                 addCounter+=1
-            #if len(topk[word]) >= 10:
-                #topk[word] = sorted(topk[word], reverse=True)[:10]
     return topk
-
 
 def transitivityAnalysis(topk,W1,W2,Sim,vocab, render=True):
     lens = []
@@ -90,7 +98,6 @@ def transitivityAnalysis(topk,W1,W2,Sim,vocab, render=True):
         plt.title('# required transitive operations')
         plt.show()
     return topk
-
 
 def golden_top_K(W1,W2,Sim,vocab):
     topk = {}
@@ -109,32 +116,45 @@ def golden_top_K(W1,W2,Sim,vocab):
                 topk[first] = [[Sim[i], second]]
             else:
                 topk[first].append([Sim[i], second])
-##    transitiveTopk = transitive(topk,W1,W2,Sim,vocab)
     return topk
         
+################ Models ################
+def search(GT, similarities, vocab):
+    TOPS = {}
+    vv = np.asarray(vocab)
+    for i in G.keys():
+        if i in vv:
+            ind = vocab.index(i)
+            simVec = similarities[ind]
+            inds = np.flip(simVec.argsort()[-11:])
+            inds = np.setdiff1d(inds,ind)
+            tops = vv[np.array(inds)]
+            TOPS[i] = tops
+    return TOPS
+def searchW2V(model,G):
+    TOPS = {}
+    for i in G.keys():
+        if model.wv.has_index_for(i):
+            sims = model.wv.most_similar(i,topn=10)
+            TOPS[i] = sims
+    return TOPS
 
-##    topk = {}
-##    WW1 = np.concatenate((W1,W2))
-##    WW2 = np.concatenate((W2,W1))
-##    Sim = np.concatenate((Sim,Sim))
-##    W1 = WW1
-##    W2 = WW2
-##    print(W1.shape)
-##    print(W2.shape)
-##    print(Sim.shape)
-##    for i,w1 in enumerate(W1):
-##        if w1 in vocab:
-##            if w1 not in topk.keys():
-##                topk[w1] = []
-##            indexesL2R = np.where(np.array(W1) == w1)[0]
-##            for ind in indexesL2R:
-##                if [W2[ind],Sim[ind]] not in topk[w1]:
-##                    topk[w1].append([W2[ind],Sim[ind]])
-##            if len(topk[w1]) > 10:
-##                print(w1, topk[w1])
-##    return topk
+################ Evaluation ################
+def evaluatorfunc(model,truth,method):
+##    T = np.asarray(topN)
+##    q, run = DictonaryGeneration(T[:,:k], M, C)
+    if method=='TF-iDF':
+        q, run = DictonaryGeneration(model, truth)
+    elif method=='Word2Vec':
+        q, run = DictonaryGenerationW2V(model, truth)
+##    q = model
+##    run = truth
+    evaluator = pytrec_eval.RelevanceEvaluator(q, {f'ndcg'})
+    a = json.dumps(evaluator.evaluate(run), indent=1)
+    b = evaluator.evaluate(run)
+    return b
 
-
+################ Main ################
 C = data()
 f = open("SimLex-999/SimLex-999.txt", encoding = 'utf-8')
 W1 = []
@@ -149,24 +169,40 @@ f.close()
 W1 = np.asarray(W1)
 W2 = np.asarray(W2)
 Sim = np.asarray(Sim)
+method = 'TF-iDF'
+if method == 'TF-iDF':
+    tfIdfVectorizer=tfidf(use_idf=True)
+    tfIdf = tfIdfVectorizer.fit_transform(C)
+    d = pd.DataFrame(tfIdf.T.todense())
+    similarities = cs(d)
+    keys = tfIdfVectorizer.vocabulary_.keys()
+    vocab = []
+    for i in keys:
+        vocab.append(i)
+    gg = golden_top_K(W1,W2,Sim,vocab)
+    G = transitivityAnalysis(copy.deepcopy(gg),W1,W2,Sim,vocab,render=False)
+    modelTops = search(G, similarities, vocab)
+    a = evaluatorfunc(modelTops,G,method)
+    d1 = []
+    for i in a.keys():
+        d1.append(a[i]['ndcg'])
+    print(f'mean ndcg:',sum(d1)/len(d1))
+    
+elif method == 'Word2Vec':
+    results = []
+    window_size = [1, 2, 5, 10]
+    vector_size = [10, 50, 100, 300]
+    for ws in window_size:
+        for vs in vector_size:
+            model = Word2Vec(sentences=brownDS, vector_size=vs, window=ws, workers=4, epochs=10)
+            vocab = list(model.wv.index_to_key)
+            gg = golden_top_K(W1,W2,Sim,vocab)
+            G = transitivityAnalysis(copy.deepcopy(gg),W1,W2,Sim,vocab)
+            W2Vtops = searchW2V(model,G)
+            results = evaluatorfunc(W2Vtops,G,method)
+            d1 = []
+            for i in results.keys():
+                d1.append(results[i]['ndcg'])
+            print(f'mean ndcg ws:{ws},vs:{vs}:',sum(d1)/len(d1))
 
 
-
-tfIdfVectorizer=tfidf(use_idf=True)
-tfIdf = tfIdfVectorizer.fit_transform(C)
-d = pd.DataFrame(tfIdf.T.todense())
-cos = cs(d)
-a = tfIdfVectorizer.vocabulary_.keys()
-vocab = []
-for i in a:
-    vocab.append(i)
-gg = golden_top_K(W1,W2,Sim,vocab)
-print(notten(gg))
-GroundTruth = transitivityAnalysis(copy.deepcopy(gg),W1,W2,Sim,vocab)
-print(notten(GroundTruth))
-##df = pd.DataFrame(tfIdf.todense(), index=tfIdfVectorizer.get_feature_names_out(), columns=["TF-IDF"])
-##df = df.sort_values('TF-IDF', ascending=False)
-##print (df.head(25))
-
-##vectorizer = tfidf()
-##X = vectorizer.fit_transform(C)
