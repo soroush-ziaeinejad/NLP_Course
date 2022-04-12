@@ -1,4 +1,5 @@
 import nltk
+nltk.download('brown')
 from nltk.corpus import brown, wordnet
 import numpy as np
 from gensim.models import Word2Vec
