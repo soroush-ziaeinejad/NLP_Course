@@ -42,7 +42,7 @@ def DictonaryGenerationW2V(model,G):
 brownDS = brown.sents(categories=['news'])
 #### Corpus ####
 def data():
-    brownDS = brown.sents(categories=['news'])#, ,'hobbies'])
+    brownDS = brown.sents(categories=['news', 'hobbies'])
     dd =[]
     for i in brownDS:
         dd.append(" ".join(i))
